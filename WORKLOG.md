@@ -350,6 +350,18 @@ Release prep documents were added for store submission:
 - `PRIVACY_POLICY.md`
 - `RELEASE_CHECKLIST.md`
 
+### 2026-04-15: README added
+
+A public-facing `README.md` was added with:
+
+- product overview
+- target users
+- supported sites
+- installation instructions
+- usage instructions
+- support contact and Ko-fi link
+- current license-status note
+
 ## 15. If A Future Session Starts Cold
 
 Read in this order:
