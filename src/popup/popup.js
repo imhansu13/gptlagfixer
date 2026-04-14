@@ -94,7 +94,7 @@
       populateSettings(nextSettings);
       setStatus(statusMessages.saved);
     } catch (error) {
-      console.warn("ChatGPT Speed Trim: failed to save popup settings.", error);
+      console.warn("GPTlagfixer: failed to save popup settings.", error);
       setStatus(statusMessages.error);
     }
   }
@@ -125,7 +125,7 @@
       window.clearTimeout(keepCountSaveTimer);
       keepCountSaveTimer = window.setTimeout(() => {
         saveSettings({ keepCount: app.storage.clampKeepCount(event.target.value) }).catch((error) => {
-          console.warn("ChatGPT Speed Trim: popup autosave failed.", error);
+          console.warn("GPTlagfixer: popup autosave failed.", error);
         });
       }, 220);
     });
@@ -144,7 +144,7 @@
         saveSettings({
           loadMoreCount: app.storage.clampLoadMoreCount(event.target.value)
         }).catch((error) => {
-          console.warn("ChatGPT Speed Trim: popup autosave failed.", error);
+          console.warn("GPTlagfixer: popup autosave failed.", error);
         });
       }, 220);
     });
@@ -170,7 +170,7 @@
 
         setStatus("Reset sent to current chat.");
       } catch (error) {
-        console.warn("ChatGPT Speed Trim: failed to reset current chat.", error);
+        console.warn("GPTlagfixer: failed to reset current chat.", error);
         setStatus("Open a ChatGPT chat tab to reset it.");
       }
     });
@@ -179,12 +179,12 @@
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => {
       initializePopup().catch((error) => {
-        console.warn("ChatGPT Speed Trim: popup initialization failed.", error);
+        console.warn("GPTlagfixer: popup initialization failed.", error);
       });
     }, { once: true });
   } else {
     initializePopup().catch((error) => {
-      console.warn("ChatGPT Speed Trim: popup initialization failed.", error);
+      console.warn("GPTlagfixer: popup initialization failed.", error);
     });
   }
 })();

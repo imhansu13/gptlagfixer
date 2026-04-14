@@ -40,7 +40,7 @@
     window.clearTimeout(runtimeState.debounceTimer);
     runtimeState.debounceTimer = window.setTimeout(() => {
       app.prune.apply(runtimeState.settings, options).catch((error) => {
-        console.warn("ChatGPT Speed Trim: failed to apply pruning.", error);
+        console.warn("GPTlagfixer: failed to apply pruning.", error);
       }).finally(() => {
         startObserver();
       });
@@ -171,12 +171,12 @@
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => {
       initialize().catch((error) => {
-        console.warn("ChatGPT Speed Trim: initialization failed.", error);
+        console.warn("GPTlagfixer: initialization failed.", error);
       });
     }, { once: true });
   } else {
     initialize().catch((error) => {
-      console.warn("ChatGPT Speed Trim: initialization failed.", error);
+      console.warn("GPTlagfixer: initialization failed.", error);
     });
   }
 })();

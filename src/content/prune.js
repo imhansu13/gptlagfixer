@@ -103,7 +103,7 @@
     try {
       window.sessionStorage.removeItem(getMetaStorageKey(conversationKey));
     } catch (error) {
-      console.warn("ChatGPT Speed Trim: failed to clear conversation metadata.", error);
+    console.warn("GPTlagfixer: failed to clear conversation metadata.", error);
     }
   }
 

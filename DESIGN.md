@@ -1,8 +1,8 @@
-# ChatGPT Speed Trim Design
+# GPTlagfixer Design
 
 ## 1. Product Summary
 
-`ChatGPT Speed Trim` is a Chrome Manifest V3 extension for long ChatGPT chats.
+`GPTlagfixer` is a Chrome Manifest V3 extension for long ChatGPT chats.
 
 Its job is simple:
 

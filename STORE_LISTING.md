@@ -2,7 +2,7 @@
 
 ## Extension Name
 
-ChatGPT Speed Trim
+GPTlagfixer
 
 ## One-line Summary
 
@@ -14,7 +14,7 @@ Keeps long ChatGPT conversations responsive by limiting how many recent messages
 
 ## Detailed Description
 
-ChatGPT Speed Trim helps long ChatGPT conversations stay fast and responsive.
+GPTlagfixer helps long ChatGPT conversations stay fast and responsive.
 
 When a chat gets very large, the extension keeps only the most recent messages visible by default, which reduces lag, lowers memory pressure, and makes scrolling and typing feel lighter.
 

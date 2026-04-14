@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "ChatGPT Speed Trim",
+  "name": "GPTlagfixer",
   "version": "0.1.0",
   "description": "Keep only the latest messages rendered in long ChatGPT chats to reduce lag.",
   "permissions": [
@@ -11,7 +11,7 @@
     "https://chatgpt.com/*"
   ],
   "action": {
-    "default_title": "ChatGPT Speed Trim",
+    "default_title": "GPTlagfixer",
     "default_popup": "src/popup/popup.html"
   },
   "web_accessible_resources": [

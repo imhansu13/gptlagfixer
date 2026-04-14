@@ -1,8 +1,8 @@
-# GPT Lag Fixer
+# GPTlagfixer
 
 Keep long ChatGPT chats light by rendering only the most recent messages.
 
-`GPT Lag Fixer` is a small Chrome extension for people whose long ChatGPT conversations start feeling heavy, laggy, or memory-hungry.
+`GPTlagfixer` is a small Chrome extension for people whose long ChatGPT conversations start feeling heavy, laggy, or memory-hungry.
 
 It is designed to stay simple:
 

@@ -2,11 +2,11 @@
 
 ## 1. Current Project State
 
-Project: `ChatGPT Speed Trim`
+Project: `GPTlagfixer`
 
 Public repo/readme display name:
 
-- `GPT Lag Fixer`
+- `GPTlagfixer`
 
 Workspace:
 

@@ -2,7 +2,7 @@
 
 Last updated: 2026-04-12
 
-`ChatGPT Speed Trim` is designed to work fully locally in your browser.
+`GPTlagfixer` is designed to work fully locally in your browser.
 
 ## What this extension does
 

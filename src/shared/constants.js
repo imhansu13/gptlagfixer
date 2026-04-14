@@ -2,7 +2,7 @@
   const app = window.ChatSpeedTrim = window.ChatSpeedTrim || {};
 
   app.constants = {
-    extensionName: "ChatGPT Speed Trim",
+  extensionName: "GPTlagfixer",
     storageKey: "settings",
     pageSettingsStorageKey: "chat-speed-trim:page-settings",
     conversationMetaPrefix: "chat-speed-trim:meta:",

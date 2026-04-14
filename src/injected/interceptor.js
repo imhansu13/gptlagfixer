@@ -68,7 +68,7 @@
         JSON.stringify(meta)
       );
     } catch (error) {
-      console.warn("ChatGPT Speed Trim: failed to write conversation metadata.", error);
+      console.warn("GPTlagfixer: failed to write conversation metadata.", error);
     }
   }
 
@@ -76,7 +76,7 @@
     try {
       window.sessionStorage.removeItem(`${KEYS.metaPrefix}${conversationKey}`);
     } catch (error) {
-      console.warn("ChatGPT Speed Trim: failed to clear conversation metadata.", error);
+      console.warn("GPTlagfixer: failed to clear conversation metadata.", error);
     }
   }
 
@@ -400,7 +400,7 @@
             }
           });
         } catch (error) {
-          console.warn("ChatGPT Speed Trim: XHR trim failed.", error);
+          console.warn("GPTlagfixer: XHR trim failed.", error);
         }
       });
 

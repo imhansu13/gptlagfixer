@@ -39,7 +39,7 @@
     try {
       window.localStorage.setItem(constants.pageSettingsStorageKey, JSON.stringify(normalized));
     } catch (error) {
-      console.warn("ChatGPT Speed Trim: failed to mirror settings to page storage.", error);
+    console.warn("GPTlagfixer: failed to mirror settings to page storage.", error);
     }
   }
 
@@ -57,6 +57,6 @@
   }
 
   initializeBootstrap().catch((error) => {
-    console.warn("ChatGPT Speed Trim: bootstrap failed.", error);
+    console.warn("GPTlagfixer: bootstrap failed.", error);
   });
 })();
