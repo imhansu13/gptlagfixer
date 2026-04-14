@@ -167,9 +167,6 @@ If something is broken or unclear, contact:
 
 ## License
 
-There is currently no separate open-source license file in this repository.
+This project is licensed under the `MIT License`.
 
-Unless a license file is added later, the repository contents should be treated under standard copyright terms rather than as automatically open for unrestricted reuse or redistribution.
-
-If you want to make the project openly reusable, add a proper `LICENSE` file before inviting outside reuse or contributions.
-
+See [LICENSE](./LICENSE) for details.

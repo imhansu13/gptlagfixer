@@ -362,6 +362,10 @@ A public-facing `README.md` was added with:
 - support contact and Ko-fi link
 - current license-status note
 
+### 2026-04-15: MIT license added
+
+The repository now includes an `MIT` license file and the README license section was updated to point to it.
+
 ## 15. If A Future Session Starts Cold
 
 Read in this order:
