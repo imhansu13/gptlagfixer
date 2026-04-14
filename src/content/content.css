@@ -1,0 +1,39 @@
+.cst-placeholder {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 12px 0 18px;
+  padding: 14px 16px;
+  border: 1px solid rgba(22, 78, 99, 0.12);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(24, 119, 242, 0.05), rgba(22, 163, 74, 0.05)),
+    rgba(255, 255, 255, 0.88);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.cst-placeholder__summary {
+  margin: 0;
+  color: #223147;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.cst-placeholder__button {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: #17314f;
+  color: #ffffff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cst-placeholder__button:hover {
+  background: #132843;
+}

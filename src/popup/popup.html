@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatGPT Speed Trim</title>
+    <link rel="stylesheet" href="./popup.css">
+  </head>
+  <body>
+    <main class="popup">
+      <section class="hero">
+        <p class="eyebrow">ChatGPT Speed Trim</p>
+        <h1>Keep long chats light.</h1>
+        <p class="hero-copy">
+          Older messages are removed from the rendered page so long conversations stay responsive.
+        </p>
+      </section>
+
+      <section class="card card-action">
+        <p class="action-title">Reset current chat</p>
+        <p class="action-copy">Hide all older messages again and return to your base visible count.</p>
+        <button class="action-button" id="resetCurrentChatButton" type="button">
+          Reset to keep count
+        </button>
+      </section>
+
+      <section class="card card-secondary">
+        <p class="support-title">Support development</p>
+        <p class="support-copy">
+          This extension is Free forever and has no paywall, no backend, and no tracking, no analytics.
+          If it helped make your long ChatGPT chats faster, you can support my ongoing development and maintenance here.
+        </p>
+        <a
+          class="support-link"
+          href="https://ko-fi.com/imhansu"
+          target="_blank"
+          rel="noreferrer noopener"
+          id="donateLink"
+        >
+          Tip on Ko-fi
+        </a>
+      </section>
+
+      <section class="card">
+        <label class="field" for="keepCount">
+          <span class="field-label">Messages to keep visible</span>
+          <input id="keepCount" name="keepCount" type="number" min="4" max="200" step="1">
+        </label>
+        <p class="field-hint">Lower values are faster. A good starting point is 16.</p>
+
+        <label class="field field-spaced" for="loadMoreCount">
+          <span class="field-label">Messages to load each time</span>
+          <input id="loadMoreCount" name="loadMoreCount" type="number" min="5" max="200" step="1">
+        </label>
+        <p class="field-hint">Choose how many older messages appear each time you click the load button.</p>
+
+        <label class="toggle-row" for="enabledToggle">
+          <span>
+            <span class="field-label">Enable Speed Trim</span>
+            <span class="toggle-copy">Turn pruning on or off for supported ChatGPT pages.</span>
+          </span>
+          <span class="switch">
+            <input id="enabledToggle" name="enabledToggle" type="checkbox">
+            <span class="switch-track" aria-hidden="true"></span>
+          </span>
+        </label>
+        <p class="status" id="statusText" aria-live="polite">Saved locally.</p>
+      </section>
+
+      <p class="footer-note">
+        If you run into any issues, contact
+        <a class="footer-link" href="mailto:imhansu13@gmail.com">imhansu13@gmail.com</a>.
+      </p>
+    </main>
+
+    <script src="../shared/constants.js"></script>
+    <script src="../shared/storage.js"></script>
+    <script src="./popup.js"></script>
+  </body>
+</html>
