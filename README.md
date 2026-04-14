@@ -1,8 +1,8 @@
-# ChatGPT Speed Trim
+# GPT Lag Fixer
 
 Keep long ChatGPT chats light by rendering only the most recent messages.
 
-`ChatGPT Speed Trim` is a small Chrome extension for people whose long ChatGPT conversations start feeling heavy, laggy, or memory-hungry.
+`GPT Lag Fixer` is a small Chrome extension for people whose long ChatGPT conversations start feeling heavy, laggy, or memory-hungry.
 
 It is designed to stay simple:
 

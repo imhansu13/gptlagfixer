@@ -4,6 +4,10 @@
 
 Project: `ChatGPT Speed Trim`
 
+Public repo/readme display name:
+
+- `GPT Lag Fixer`
+
 Workspace:
 
 - current workspace folder ends with `...\gptspeeder`
