@@ -14,6 +14,8 @@ It is designed to stay simple:
 
 If you want to support the project, the popup includes an optional Ko-fi tip button.
 
+Disclaimer: This extension is an unofficial tool and is not affiliated with OpenAI.
+
 ## Why this exists
 
 Long ChatGPT conversations can become sluggish after hundreds or thousands of turns.
@@ -88,6 +90,27 @@ This is why it helps with both responsiveness and memory pressure:
 
 When you press `Load more messages`, the extension expands the visible range in chunks instead of restoring the whole conversation all at once.
 
+### Step-by-step flow
+
+1. At `document_start`, the extension injects its early page hook before ChatGPT fully loads.
+2. It watches ChatGPT conversation responses and tries to keep only the latest visible suffix.
+3. It stores only lightweight local state for settings and current-chat reveal ranges.
+4. If early trimming does not apply, the content-side fallback still trims older rendered content.
+5. The page shows a small banner that tells you how many earlier messages are hidden and lets you load more in chunks.
+
+### How hidden message counting works
+
+The hidden count is based on conversation turns that are considered renderable, not simply raw text blocks.
+
+In practice, that means:
+
+- a user prompt usually counts as one message
+- an assistant reply usually counts as one message
+- internal non-user-facing nodes are ignored where possible
+- the number may not always match what you would estimate by visually counting paragraphs
+
+So the hidden count is best understood as a practical conversation-entry count rather than a perfect human eyeball count.
+
 ## Privacy and data behavior
 
 This extension is designed to work fully locally in your browser.
@@ -153,6 +176,44 @@ If you want to go back to the base trimmed view:
 - open the popup
 - click `Reset current chat`
 
+If you want to temporarily stop trimming:
+
+- open the popup
+- turn off `Enable Speed Trim`
+- refresh the ChatGPT page if needed
+
+## FAQ
+
+### Does this reduce the model's context?
+
+No.
+
+This extension is meant to reduce what your browser actively renders, not erase your conversation from OpenAI's side. Its purpose is performance in the browser UI.
+
+### Is my data safe?
+
+The extension is designed to work locally.
+
+- no backend
+- no analytics
+- no tracking
+- no remote logging
+- no core-functionality network service operated by the developer
+
+The optional Ko-fi button is just an external support link that opens only if you choose to click it.
+
+### What happens if ChatGPT changes its UI or response format?
+
+That is the main compatibility risk for this kind of extension.
+
+If ChatGPT changes enough, trimming may stop working correctly until the extension is updated. The intended behavior is fail-safe: the extension should stop trimming rather than corrupting the conversation page.
+
+### Why not just hide DOM nodes after the page loads?
+
+That was not enough on its own for very large chats.
+
+The project moved toward earlier response trimming because post-render cleanup alone improved responsiveness but did not reduce memory usage aggressively enough in the heaviest conversations.
+
 ## Support
 
 The extension is free forever.
@@ -164,6 +225,10 @@ If it helped make your long ChatGPT chats faster, you can support ongoing develo
 If something is broken or unclear, contact:
 
 - `imhansu13@gmail.com`
+
+## Disclaimer
+
+This extension is an unofficial program and is not affiliated with, endorsed by, or sponsored by OpenAI.
 
 ## License
 

@@ -370,6 +370,16 @@ A public-facing `README.md` was added with:
 
 The repository now includes an `MIT` license file and the README license section was updated to point to it.
 
+### 2026-04-15: README expanded
+
+The README was expanded with:
+
+- FAQ entries
+- hidden-message counting explanation
+- fail-safe behavior explanation
+- restore/reset usage notes
+- OpenAI non-affiliation disclaimer
+
 ## 15. If A Future Session Starts Cold
 
 Read in this order:
