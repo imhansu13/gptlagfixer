@@ -1,7 +1,8 @@
 {
   "manifest_version": 3,
   "name": "GPTlagfixer",
-  "version": "0.1.0",
+  "version": "0.1.1",
+  "minimum_chrome_version": "111",
   "description": "Keep only the latest messages rendered in long ChatGPT chats to reduce lag.",
   "permissions": [
     "storage"
@@ -14,18 +15,16 @@
     "default_title": "GPTlagfixer",
     "default_popup": "src/popup/popup.html"
   },
-  "web_accessible_resources": [
+  "content_scripts": [
     {
-      "resources": [
-        "src/injected/interceptor.js"
-      ],
       "matches": [
         "https://chat.openai.com/*",
         "https://chatgpt.com/*"
-      ]
-    }
-  ],
-  "content_scripts": [
+      ],
+      "js": ["src/injected/interceptor.js"],
+      "world": "MAIN",
+      "run_at": "document_start"
+    },
     {
       "matches": [
         "https://chat.openai.com/*",

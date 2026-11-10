@@ -6,7 +6,8 @@
     settings: null,
     observer: null,
     debounceTimer: null,
-    observerTarget: null
+    observerTarget: null,
+    pendingOptions: {}
   };
 
   function hookHistoryNavigation() {
@@ -37,9 +38,20 @@
       return;
     }
 
-    window.clearTimeout(runtimeState.debounceTimer);
+    runtimeState.pendingOptions = {
+      ...runtimeState.pendingOptions,
+      ...options,
+      forceReset: Boolean(runtimeState.pendingOptions.forceReset || options.forceReset)
+    };
+    // Continuous streaming must not postpone pruning indefinitely.
+    if (runtimeState.debounceTimer) {
+      return;
+    }
     runtimeState.debounceTimer = window.setTimeout(() => {
-      app.prune.apply(runtimeState.settings, options).catch((error) => {
+      runtimeState.debounceTimer = null;
+      const pendingOptions = runtimeState.pendingOptions;
+      runtimeState.pendingOptions = {};
+      app.prune.apply(runtimeState.settings, pendingOptions).catch((error) => {
         console.warn("GPTlagfixer: failed to apply pruning.", error);
       }).finally(() => {
         startObserver();
@@ -80,14 +92,9 @@
   }
 
   function resolveObserverTarget() {
-    const turns = app.dom.collectMessageBlocks();
-    const turnContainer = app.dom.getTurnContainer(turns);
-
-    if (turnContainer) {
-      return turnContainer;
-    }
-
-    return app.dom.getChatRoot() || document.body;
+    // SPA navigation can replace main and the entire turn container. Observe
+    // their stable ancestor so the next conversation is detected as well.
+    return document.body;
   }
 
   function startObserver() {
@@ -128,7 +135,13 @@
     startObserver();
 
     app.storage.onSettingsChanged((nextSettings) => {
+      const wasEnabled = runtimeState.settings.enabled;
       runtimeState.settings = nextSettings;
+      if (nextSettings.enabled && !wasEnabled) {
+        // Enabling on an already loaded chat must also shrink app state.
+        window.location.reload();
+        return;
+      }
       runtimeState.observerTarget = null;
       scheduleApply({ reason: "settings", forceReset: true });
     });
@@ -150,6 +163,14 @@
     });
 
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      if (message && message.type === "chat-speed-trim:status") {
+        sendResponse({
+          enabled: runtimeState.settings.enabled,
+          hiddenCount: app.prune.state.hiddenCount,
+          networkHiddenCount: app.prune.state.networkHiddenCount
+        });
+        return;
+      }
       if (!message || message.type !== "chat-speed-trim:reset-current-chat") {
         return;
       }

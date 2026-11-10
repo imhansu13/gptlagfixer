@@ -1,4 +1,9 @@
 (() => {
+  if (window.__chatSpeedTrimInterceptorInstalled) {
+    return;
+  }
+  window.__chatSpeedTrimInterceptorInstalled = true;
+
   const DEFAULTS = {
     enabled: true,
     keepCount: 16
@@ -13,6 +18,19 @@
   const state = {
     settings: readSettingsFromStorage()
   };
+
+  // Metadata describes this document's actual responses, not a previous reload.
+  // Keeping old counts here can cause phantom banners and reload loops when an
+  // endpoint changes and no network trimming happens on the next visit.
+  try {
+    for (const key of Object.keys(window.sessionStorage)) {
+      if (key.startsWith(KEYS.metaPrefix)) {
+        window.sessionStorage.removeItem(key);
+      }
+    }
+  } catch (error) {
+    // Storage may be unavailable; network handling must still fail open.
+  }
 
   function normalizeSettings(rawSettings) {
     const keepCount = Number.parseInt(rawSettings && rawSettings.keepCount, 10);
@@ -80,8 +98,15 @@
     }
   }
 
-  function isConversationRequest(url) {
-    return /\/conversation\//.test(url.pathname) && !/\/conversations\b/.test(url.pathname);
+  function isConversationRequest(url, method = "GET") {
+    return method.toUpperCase() === "GET" &&
+      ["chatgpt.com", "chat.openai.com"].includes(url.hostname) &&
+      /\/backend-api\/(?:f\/)?conversation\/[^/]+\/?$/.test(url.pathname);
+  }
+
+  function getRequestConversationKey(url) {
+    const id = url.pathname.match(/\/conversation\/([^/]+)\/?$/);
+    return id ? `c:${id[1]}` : getConversationKey();
   }
 
   function isRenderableTurn(node) {
@@ -110,6 +135,9 @@
       nextId = mapping[nextId].parent || null;
     }
 
+    if (nextId) {
+      return []; // Broken or cyclic ancestry must never be rewritten.
+    }
     return chain.reverse();
   }
 
@@ -175,7 +203,7 @@
   }
 
   function trimConversationPayload(payload, requestUrl) {
-    const conversationKey = getConversationKey();
+    const conversationKey = getRequestConversationKey(requestUrl);
     const settings = refreshSettings();
 
     if (
@@ -183,7 +211,7 @@
       typeof payload !== "object" ||
       Array.isArray(payload) ||
       !payload.mapping ||
-      typeof payload.mapping !== "object" ||
+      typeof payload.mapping !== "object" || Array.isArray(payload.mapping) ||
       !payload.current_node
     ) {
       return { payload, changed: false };
@@ -273,11 +301,29 @@
     };
   }
 
-  async function maybeTransformFetchResponse(input, response) {
-    try {
-      const requestUrl = new URL(typeof input === "string" ? input : input.url, window.location.href);
+  function preserveResponseProperties(transformed, { url, redirected, type }) {
+    // Capture primitives only. Holding the original Response in clone's closure
+    // would also retain its untrimmed body and undermine the memory saving.
+    const metadata = { url, redirected, type };
+    for (const key of ["url", "redirected", "type"]) {
+      Object.defineProperty(transformed, key, { value: metadata[key] });
+    }
+    const clone = transformed.clone.bind(transformed);
+    Object.defineProperty(transformed, "clone", {
+      value: () => preserveResponseProperties(clone(), metadata)
+    });
+    return transformed;
+  }
 
-      if (!isConversationRequest(requestUrl)) {
+  async function maybeTransformFetchResponse(input, init, response) {
+    try {
+      const requestUrl = new URL(input instanceof URL ? input.href :
+        typeof input === "string" ? input : input.url, window.location.href);
+      const method = init && init.method || input && input.method || "GET";
+      const contentType = response.headers.get("content-type") || "";
+
+      if (!isConversationRequest(requestUrl, method) || !response.ok ||
+          contentType.includes("text/event-stream")) {
         return response;
       }
 
@@ -295,11 +341,14 @@
         return response;
       }
 
-      return new Response(JSON.stringify(result.payload), {
+      const headers = new Headers(response.headers);
+      headers.delete("content-length");
+      headers.delete("content-encoding");
+      return preserveResponseProperties(new Response(JSON.stringify(result.payload), {
         status: response.status,
         statusText: response.statusText,
-        headers: response.headers
-      });
+        headers
+      }), response);
     } catch (error) {
       return response;
     }
@@ -318,7 +367,7 @@
 
     async function patchedFetch(...args) {
       const response = await originalFetch.apply(this, args);
-      return maybeTransformFetchResponse(args[0], response);
+      return maybeTransformFetchResponse(args[0], args[1], response);
     }
 
     patchedFetch.__chatSpeedTrimPatched = true;
@@ -333,79 +382,70 @@
     }
 
     const originalOpen = prototype.open;
-    const originalSend = prototype.send;
+    const responseDescriptor = Object.getOwnPropertyDescriptor(prototype, "response");
+    const textDescriptor = Object.getOwnPropertyDescriptor(prototype, "responseText");
+    if (!responseDescriptor || !textDescriptor) {
+      return;
+    }
+    const requests = new WeakMap();
 
     prototype.open = function patchedOpen(method, url, ...rest) {
-      this.__chatSpeedTrimRequest = {
+      requests.set(this, {
         method,
-        url: typeof url === "string" ? url : String(url)
-      };
+        url: String(url),
+        handled: false,
+        result: null
+      });
 
       return originalOpen.call(this, method, url, ...rest);
     };
 
-    prototype.send = function patchedSend(...args) {
-      const request = this.__chatSpeedTrimRequest;
-
-      if (!request) {
-        return originalSend.apply(this, args);
+    function readTransformedResponse(xhr) {
+      const request = requests.get(xhr);
+      if (!request || xhr.readyState !== 4) {
+        return null;
       }
-
-      const requestUrl = new URL(request.url, window.location.href);
-
-      if (!isConversationRequest(requestUrl)) {
-        return originalSend.apply(this, args);
+      if (request.handled) {
+        return request.result;
       }
-
-      this.addEventListener("readystatechange", () => {
-        if (this.readyState !== 4 || this.__chatSpeedTrimHandled) {
-          return;
+      request.handled = true;
+      try {
+        const url = new URL(request.url, window.location.href);
+        if (!isConversationRequest(url, request.method) || xhr.status < 200 ||
+            xhr.status >= 300 || !["", "text", "json"].includes(xhr.responseType)) {
+          return null;
         }
-
-        this.__chatSpeedTrimHandled = true;
-
-        try {
-          const rawText = this.responseType === "" || this.responseType === "text"
-            ? this.responseText
-            : JSON.stringify(this.response);
-
-          if (!rawText) {
-            return;
-          }
-
-          const payload = JSON.parse(rawText);
-          const result = trimConversationPayload(payload, requestUrl);
-
-          if (!result.changed) {
-            return;
-          }
-
-          const transformedText = JSON.stringify(result.payload);
-
-          Object.defineProperty(this, "responseText", {
-            configurable: true,
-            get() {
-              return transformedText;
-            }
-          });
-
-          Object.defineProperty(this, "response", {
-            configurable: true,
-            get() {
-              if (this.responseType === "" || this.responseType === "text") {
-                return transformedText;
-              }
-
-              return result.payload;
-            }
-          });
-        } catch (error) {
-          console.warn("GPTlagfixer: XHR trim failed.", error);
+        const payload = xhr.responseType === "json"
+          ? responseDescriptor.get.call(xhr)
+          : JSON.parse(textDescriptor.get.call(xhr));
+        const result = trimConversationPayload(payload, url);
+        if (result.changed) {
+          request.result = { payload: result.payload, text: JSON.stringify(result.payload) };
         }
-      });
+      } catch (error) {
+        // Preserve the native response on unsupported or malformed data.
+      }
+      return request.result;
+    }
 
-      return originalSend.apply(this, args);
-    };
+    // Transform on first read, even when the page registered its ready-state
+    // handler before open/send. A WeakMap also resets cleanly on XHR reuse.
+    Object.defineProperty(prototype, "responseText", {
+      ...textDescriptor,
+      get() {
+        const nativeText = textDescriptor.get.call(this);
+        const result = readTransformedResponse(this);
+        return result ? result.text : nativeText;
+      }
+    });
+    Object.defineProperty(prototype, "response", {
+      ...responseDescriptor,
+      get() {
+        const nativeResponse = responseDescriptor.get.call(this);
+        const result = readTransformedResponse(this);
+        return result ? (this.responseType === "json" ? result.payload : result.text) : nativeResponse;
+      }
+    });
 
     prototype.__chatSpeedTrimPatched = true;
   }

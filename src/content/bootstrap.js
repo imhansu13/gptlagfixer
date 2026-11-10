@@ -6,33 +6,6 @@
     return constants.supportedHosts.has(window.location.hostname);
   }
 
-  function injectPageScript() {
-    if (!isSupportedHost()) {
-      return;
-    }
-
-    if (document.querySelector(`[${constants.pageScriptAttribute}="interceptor"]`)) {
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = chrome.runtime.getURL("src/injected/interceptor.js");
-    script.async = false;
-    script.setAttribute(constants.pageScriptAttribute, "interceptor");
-
-    const parent = document.documentElement || document.head || document.body;
-
-    if (!parent) {
-      return;
-    }
-
-    script.addEventListener("load", () => {
-      script.remove();
-    }, { once: true });
-
-    parent.prepend(script);
-  }
-
   function mirrorSettingsToPage(settings) {
     const normalized = app.storage.normalizeSettings(settings);
 
@@ -48,7 +21,7 @@
       return;
     }
 
-    injectPageScript();
+    // Chrome runs the MAIN-world hook directly from the manifest, before page scripts.
     mirrorSettingsToPage(await app.storage.ensureSettings());
 
     app.storage.onSettingsChanged((nextSettings) => {

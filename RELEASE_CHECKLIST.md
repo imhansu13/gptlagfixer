@@ -2,6 +2,16 @@
 
 ## Before Upload
 
+Version 0.1.1 automated checks (synthetic fixtures, 2026-11-10):
+
+- [x] 10 Node regression tests pass
+- [x] Unpacked MV3 extension runs its MAIN hook before page scripts under strict CSP/Trusted Types
+- [x] 1,000-message fixture reduced to latest 16 before rendering
+- [x] Reveal/reset, settings, runtime status, SPA replacement, DOM fallback, XHR text/json/reuse, both supported hosts pass in Chromium-based Edge
+- [x] JavaScript syntax and Git whitespace checks pass
+
+The manual items below remain open. Synthetic fixtures do not validate the live authenticated ChatGPT site or actual process memory savings.
+
 - [ ] Reload the unpacked extension in `chrome://extensions`
 - [ ] Test on `chatgpt.com`
 - [ ] Test on `chat.openai.com`

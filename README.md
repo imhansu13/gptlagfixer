@@ -61,7 +61,7 @@ Older messages are hidden so the page stays lighter. When you want to look furth
 
 ### Browser
 
-Officially built for `Google Chrome` as a `Manifest V3` extension.
+Officially built for `Google Chrome 111+` as a `Manifest V3` extension.
 
 Because it uses standard Chrome extension APIs, other Chromium-based browsers may work, but the project is currently targeted at Chrome first.
 
@@ -92,7 +92,7 @@ When you press `Load more messages`, the extension expands the visible range in 
 
 ### Step-by-step flow
 
-1. At `document_start`, the extension injects its early page hook before ChatGPT fully loads.
+1. At `document_start`, Chrome runs the manifest-declared `MAIN` world hook before the site's scripts. No script tag is inserted into the page.
 2. It watches ChatGPT conversation responses and tries to keep only the latest visible suffix.
 3. It stores only lightweight local state for settings and current-chat reveal ranges.
 4. If early trimming does not apply, the content-side fallback still trims older rendered content.
@@ -181,6 +181,40 @@ If you want to temporarily stop trimming:
 - open the popup
 - turn off `Enable Speed Trim`
 - refresh the ChatGPT page if needed
+
+### Updating an existing source installation
+
+1. Replace your extension source with the latest repository files, or run `git pull` in your existing clone.
+2. Open `chrome://extensions` and click the reload button on GPTlagfixer.
+3. Refresh existing ChatGPT tabs. Existing tabs keep the old injected code until refreshed.
+
+If using this clone for the first time, choose its folder with `Load unpacked`.
+Enabling trimming and changing the visible count on a network-trimmed chat can reload the tab so the page's conversation data matches the setting.
+
+### Checking whether memory trimming is active
+
+Open the extension popup while the ChatGPT tab is active:
+
+- `Network trim active` means older messages were removed from the response before the page read it.
+- `Page trim active` means only the DOM fallback applied. This can improve rendering, but the site's full conversation data may remain in memory. Refresh the tab to retry network trimming.
+- If no messages have been trimmed, open a long chat or refresh the current tab.
+
+The extension cannot guarantee a particular memory saving. Unsupported response formats pass through unchanged.
+
+## Development checks
+
+The installed extension needs no build step or Node dependencies. Development tests use Node.js 20+:
+
+```sh
+npm install
+npm test
+npx playwright install chromium
+npm run test:browser
+```
+
+The browser suite loads the actual unpacked extension into a temporary profile and routes both supported hosts to synthetic conversations. It tests the early hook under strict CSP/Trusted Types, fetch and XHR, reveal/reset, settings, runtime status, SPA navigation, and DOM fallback. It never uses a ChatGPT account. To use an installed Chromium browser, set `GPTLAGFIXER_BROWSER` to its executable path; that browser must allow unpacked extension loading by command-line flags.
+
+In the synthetic 1,000-message case, 16 messages plus a root anchor reach the page (18,261 JSON characters versus 1,133,075). This measures response reduction, not real ChatGPT memory usage. Live authenticated-site compatibility and memory measurements remain manual checks in [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md).
 
 ## FAQ
 

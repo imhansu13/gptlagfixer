@@ -10,7 +10,7 @@ Public repo/readme display name:
 
 Workspace:
 
-- current workspace folder ends with `...\gptspeeder`
+- repair checkout folder ends with `...\코딩\gptlagfixer`
 
 Current overall status:
 
@@ -20,7 +20,8 @@ Current overall status:
 - enable toggle exists
 - Ko-fi link exists
 - progressive reload-based reveal exists
-- pre-render network trimming is now being added to reduce memory more aggressively
+- version 0.1.1 repairs pre-render interception and DOM fallback lifecycle
+- automated synthetic-data checks pass; authenticated-site memory measurements remain unverified
 
 ## 2. Fixed Product Decisions
 
@@ -97,6 +98,8 @@ The current target architecture is:
 5. only use DOM pruning as a fallback or secondary layer
 
 This is the major change from the earlier MVP.
+
+Version 0.1.1 registers the interceptor directly as a MAIN-world document-start content script. Bootstrap only mirrors settings; it no longer inserts a script tag. Chrome 111+ is required, with no additional permissions.
 
 Small hardening choices already applied:
 
@@ -288,6 +291,39 @@ Future edits should preserve the current reality:
 - optional Ko-fi only
 
 ## 14. Session Log
+
+### 2026-11-10: repair inactive memory trimming (0.1.1)
+
+Read all project Markdown in full, especially this worklog and DESIGN.md. Preserved local-only processing, reload-based reveal, no archived hidden nodes, the existing controls, and optional Ko-fi.
+
+User reported no memory saving / extension apparently inactive. Code inspection found the early hook depended on script-tag insertion at document_start, where the document root may not exist and page CSP/Trusted Types can prevent loading. Replaced this with a manifest-declared MAIN-world hook. The exact failure in the user's authenticated session was not observed.
+
+Additional repairs:
+
+- fetch URL objects now resolve correctly; response metadata survives transformation and clone, capturing only primitive metadata so the original full Response body is not retained by a closure
+- candidates are successful conversation-detail GETs, excluding streaming and unrelated subresources
+- response metadata uses the requested conversation ID, not the possibly stale address bar
+- old network metadata is cleared on each document load; reveal offsets remain
+- invalid/cyclic mapping ancestry passes through unchanged
+- XHR native getters transform before page handlers read responses, with fresh per-request state on reuse
+- a stable body observer survives SPA root replacement, and throttling prevents continuous mutations postponing pruning forever
+- new rendered turns and later DOM removals contribute to hidden counts after the initial network response
+- changing the effective keep count reloads a network-trimmed chat in either direction
+- enable/disable and reset restore/reapply network trimming; disabling before the first DOM pass also reloads if network history was already removed
+- popup reports network trim versus page-only fallback
+
+Verification:
+
+- `node --test tests/*.test.cjs`: 10 passing regression tests
+- actual unpacked MV3 extension loaded in a temporary Microsoft Edge Chromium profile through Playwright, with both supported hosts routed to synthetic fixtures; all browser scenarios passed
+- strict CSP plus Trusted Types: hook active before the first site script; 1,000 renderable messages reduced to 16 plus root anchor, JSON reduced from 1,133,075 to 18,261 characters
+- reveal, lower keep count, popup runtime status, reset-current-chat, enable/disable, SPA root replacement, DOM fallback with incoming messages, XHR early handlers/text/json/reuse, legacy host all passed without page JavaScript errors
+- browser testing used bundled Playwright 1.62.1 and the installed Edge executable via GPTLAGFIXER_BROWSER; downloaded Chrome for Testing could not launch because this machine reported a side-by-side configuration error
+- JavaScript syntax and Git whitespace checks passed
+
+Docs updated: README.md, DESIGN.md, WORKLOG.md, RELEASE_CHECKLIST.md. Tests are development-only and the extension needs no build or installed dependencies.
+
+Unverified: current authenticated ChatGPT payload/DOM compatibility and actual process memory savings on the user's long conversation. Synthetic response reduction is not a memory benchmark. Continue with the live manual checklist before making any real-world memory-saving claim.
 
 ### 2026-04-12: product direction settled
 

@@ -10,6 +10,7 @@
     lastVisibleFingerprint: "",
     lastHiddenCount: 0,
     lastEffectiveKeepCount: 0,
+    networkHiddenCount: 0,
     loadMoreCount: constants.defaultLoadMoreCount,
     hiddenCount: 0
   };
@@ -125,6 +126,7 @@
     state.turnContainer = null;
     state.conversationKey = "";
     state.hiddenCount = 0;
+    state.networkHiddenCount = 0;
     clearRecordedState();
   }
 
@@ -196,9 +198,11 @@
 
       state.conversationKey = conversationKey;
       state.loadMoreCount = settings.loadMoreCount;
+      const conversationMeta = getConversationMeta(conversationKey);
 
       if (!settings.enabled) {
-        if (state.hiddenCount > 0 || state.placeholderEl) {
+        if (state.hiddenCount > 0 || state.placeholderEl ||
+            conversationMeta && conversationMeta.hiddenCount > 0) {
           setRevealOffset(conversationKey, 0);
           clearConversationMeta(conversationKey);
           reloadPage();
@@ -224,28 +228,29 @@
       state.turnContainer = container;
 
       const effectiveKeepCount = settings.keepCount + getRevealOffset(conversationKey);
-      const conversationMeta = getConversationMeta(conversationKey);
 
       if (
         conversationMeta &&
         conversationMeta.source === "network" &&
+        conversationMeta.hiddenCount > 0 &&
         conversationMeta.effectiveKeepCount > 0 &&
-        effectiveKeepCount > conversationMeta.effectiveKeepCount
+        effectiveKeepCount !== conversationMeta.effectiveKeepCount
       ) {
         reloadPage();
         return;
       }
 
-      if (!forceReset && needsEarlyExit(visibleTurns, effectiveKeepCount)) {
+      if (!forceReset && needsEarlyExit(visibleTurns, effectiveKeepCount) &&
+          state.placeholderEl && state.placeholderEl.isConnected) {
         return;
       }
 
-      const baseHiddenCount = conversationMeta
-        ? conversationMeta.hiddenCount
-        : state.hiddenCount;
-      const totalTurns = conversationMeta && conversationMeta.totalVisibleCount > 0
-        ? conversationMeta.totalVisibleCount
-        : visibleTurns.length + baseHiddenCount;
+      // Network metadata is a snapshot from page load. Add newly rendered turns
+      // and any later DOM removals instead of freezing the total at that snapshot.
+      const networkHiddenCount = conversationMeta ? conversationMeta.hiddenCount : 0;
+      const baseHiddenCount = Math.max(state.hiddenCount, networkHiddenCount);
+      const totalTurns = visibleTurns.length + baseHiddenCount;
+      state.networkHiddenCount = networkHiddenCount;
       const desiredHiddenCount = Math.max(0, totalTurns - effectiveKeepCount);
 
       if (desiredHiddenCount < baseHiddenCount) {

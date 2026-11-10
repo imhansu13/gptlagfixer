@@ -7,7 +7,6 @@
     pageSettingsStorageKey: "chat-speed-trim:page-settings",
     conversationMetaPrefix: "chat-speed-trim:meta:",
     revealStoragePrefix: "chat-speed-trim:reveal:",
-    pageScriptAttribute: "data-chat-speed-trim-script",
     defaultEnabled: true,
     defaultKeepCount: 16,
     defaultLoadMoreCount: 20,

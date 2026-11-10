@@ -99,6 +99,21 @@
     }
   }
 
+  async function showRuntimeStatus() {
+    const element = document.getElementById("runtimeStatus");
+    if (!element) return;
+    try {
+      const tab = await queryActiveTab();
+      const status = await sendMessageToTab(tab.id, { type: "chat-speed-trim:status" });
+      element.textContent = !status.enabled ? "Trimming is off." :
+        status.networkHiddenCount > 0 ? `Network trim active: ${status.networkHiddenCount} earlier messages removed before rendering.` :
+        status.hiddenCount > 0 ? `Page trim active: ${status.hiddenCount} earlier messages removed. Refresh to retry network trimming.` :
+        "No messages trimmed yet. Open a long chat or refresh this tab.";
+    } catch (error) {
+      element.textContent = "Open a ChatGPT tab. After updating the extension, refresh that tab.";
+    }
+  }
+
   async function initializePopup() {
     const input = document.getElementById("keepCount");
     const loadMoreInput = document.getElementById("loadMoreCount");
@@ -112,6 +127,7 @@
     const settings = await app.storage.ensureSettings();
     populateSettings(settings);
     setStatus(statusMessages.idle);
+    showRuntimeStatus();
 
     toggle.addEventListener("change", async (event) => {
       await saveSettings({ enabled: event.target.checked });

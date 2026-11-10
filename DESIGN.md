@@ -98,7 +98,7 @@ The extension now uses two layers.
 
 ### Layer A: pre-render network trimming
 
-Runs in the page's main world through an injected script at `document_start`.
+Runs in the page's main world through a manifest-declared `world: "MAIN"` content script at `document_start` (Chrome 111+). Chrome executes the hook directly; it does not depend on an existing document root or a page-inserted script tag.
 
 Responsibilities:
 
@@ -116,12 +116,12 @@ Runs as a normal extension content script.
 
 Responsibilities:
 
-- inject the main-world interceptor
 - sync extension settings into page-accessible storage
 - detect message blocks in the rendered DOM
 - hide extra visible turns if the network-trimmed payload still shows too much
 - render the in-page placeholder UI
 - handle `Load 20 more messages`
+- observe `document.body` so replacing the conversation root during SPA navigation cannot disconnect the fallback
 
 This is the safety net.
 
@@ -204,12 +204,16 @@ Why this exists:
 - metadata lets the placeholder show the correct hidden count
 - metadata also lets the fallback layer decide when a reload is needed
 
+Metadata keys use the conversation ID from the request URL, since navigation or prefetch can load a different chat before the address bar changes. Old network metadata is cleared at document start; reveal offsets survive reload. Counts describe the initial response, so later DOM removals and newly rendered turns are counted separately.
+
 ## 11. Network Trim Strategy
 
 The injected script looks for conversation payloads with:
 
 - a top-level `mapping`
 - a top-level `current_node`
+
+Only successful GET detail requests on the supported hosts at `/backend-api/conversation/<id>` or `/backend-api/f/conversation/<id>` are candidates. Streaming responses, subresources, malformed ancestry, and unknown shapes pass through. Fetch accepts string, URL, and Request inputs; transformed responses preserve URL/type/redirect metadata and remove obsolete length/encoding headers. XHR transforms through native response getters on first read, before any page handler consumes it; per-request WeakMap state supports XHR reuse and text/json responses.
 
 Then it:
 
@@ -287,7 +291,7 @@ No upsell flow.
 - `manifest.json`
   - MV3 config
   - content script registration
-  - web-accessible injected script
+  - direct MAIN-world interceptor registration (no web-accessible script required)
 
 - `DESIGN.md`
   - this design document
@@ -306,7 +310,6 @@ No upsell flow.
 ### Content layer
 
 - `src/content/bootstrap.js`
-  - inject main-world interceptor
   - mirror settings into page-accessible storage
 
 - `src/content/content.js`
@@ -351,7 +354,7 @@ No upsell flow.
 ### Page load
 
 1. content script starts at `document_start`
-2. `bootstrap.js` injects `src/injected/interceptor.js`
+2. Chrome directly runs `src/injected/interceptor.js` in the MAIN world
 3. `bootstrap.js` mirrors settings into page storage
 4. page interceptor patches network APIs
 5. ChatGPT requests conversation data
@@ -404,6 +407,8 @@ Why:
 If the page was already loaded with a smaller visible slice and the user asks for more history, the extension may need a reload to fetch older turns again.
 
 This is acceptable for now.
+
+In version 0.1.1, enabling trimming reloads an already loaded chat so network trimming can reduce its app state. Changing the effective keep count in either direction reloads when network trimming removed history. Disabling restores via reload even if the first DOM pruning pass has not happened yet. Popup status distinguishes network trimming from DOM-only fallback.
 
 ## 18. Safety Rules
 
